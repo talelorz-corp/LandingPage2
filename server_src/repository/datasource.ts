@@ -9,7 +9,7 @@ export function mysqlDatasource (){
             host: 'localhost',
             user: "apiuser",
             password: "Eenyminey#20",
-            database: 'talelorz',
+            database: 'xverse',
         })
         console.log('mysql db init!')
     }

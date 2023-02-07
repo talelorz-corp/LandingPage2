@@ -18,10 +18,10 @@ to escape brackets like <>, [], use CDATA
     <!-- select all posts from most recent -->
     <select id="findPostsFromFirst" >
         SELECT ps.idposts, ps.content, ps.created_at, ps.userId, IFNULL(lks.likes, 0) as likes, IF(b.postId, 1, 0) as melike
-        FROM talelorz.posts AS ps
-        LEFT JOIN talelorz.posts_likes AS lks
+        FROM xverse.posts AS ps
+        LEFT JOIN xverse.posts_likes AS lks
         ON ps.idposts = lks.postId
-        LEFT JOIN (SELECT postId, userId FROM talelorz.likes_by WHERE userId = #{userId}) AS b
+        LEFT JOIN (SELECT postId, userId FROM xverse.likes_by WHERE userId = #{userId}) AS b
         ON ps.idposts = b.postId
         ORDER BY ps.idposts DESC
         LIMIT ${limit}
@@ -30,10 +30,10 @@ to escape brackets like <>, [], use CDATA
     <!-- select -->
     <select id="findPostsInRange" >
         SELECT ps.idposts, ps.content, ps.created_at, ps.userId, IFNULL(lks.likes, 0) as likes, IF(b.postId, 1, 0) as melike
-        FROM talelorz.posts AS ps
-        LEFT JOIN talelorz.posts_likes AS lks
+        FROM xverse.posts AS ps
+        LEFT JOIN xverse.posts_likes AS lks
         ON ps.idposts = lks.postId
-        LEFT JOIN (SELECT postId, userId FROM talelorz.likes_by WHERE userId = #{userId}) AS b
+        LEFT JOIN (SELECT postId, userId FROM xverse.likes_by WHERE userId = #{userId}) AS b
         ON ps.idposts = b.postId
         WHERE <![CDATA[ ps.idposts < ]]> ${idcursor} 
         ORDER BY ps.idposts DESC
@@ -78,21 +78,21 @@ to escape brackets like <>, [], use CDATA
 
     <!-- add a like -->
     <insert id="addLikeBy">
-        INSERT INTO talelorz.likes_by (postId, userId) 
+        INSERT INTO xverse.likes_by (postId, userId) 
             VALUES(${postId}, #{userId})
     </insert>
 
     <!-- cancel a like -->
     <delete id="cancelLikeBy">
         START TRANSACTION;
-        DELETE FROM talelorz.likes_by WHERE 
+        DELETE FROM xverse.likes_by WHERE 
             postId = ${postId} AND userId = #{userId};
         SELECT ROW_COUNT();
         COMMIT;
     </delete>
 
     <insert id="updateLikesCount">
-        INSERT INTO talelorz.posts_likes (postId, likes, window10m)
+        INSERT INTO xverse.posts_likes (postId, likes, window10m)
             VALUES(${postId}, 1, 1) ON DUPLICATE KEY UPDATE
             likes=likes+1
     </insert>

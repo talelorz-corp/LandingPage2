@@ -1,2 +1,2 @@
-select * from talelorz.posts 
-    where idposts = 292
+show create table talelorz.posts
+

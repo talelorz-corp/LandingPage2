@@ -1,15 +1,35 @@
-import { UploadPost, WriteNovel } from "../../server_src/controllers/posts";
-
-/*
+import { GetPosts, UploadPost, WriteNovel } from "../../server_src/controllers/posts";
+import {mysqlDatasource} from '../../server_src/repository/datasource'
+import { postRepository } from "../../server_src/repository/PostRepositoryImpl";
+let datasource:any = null
 describe("dbtest", ()=>{
+
+    beforeAll(()=>{
+        datasource = mysqlDatasource()
+    })
+
+    /*
     test('create', async()=>{
         const postId = await UploadPost("2616915419", "세상은 요지경~~")
         console.log("postId returned:", postId)
         expect(1).toBe(1)
     })
-} )
 */
+    test('retrive', async ()=>{
+        const posts = await GetPosts("쯔를생각해", 11, 3)
+        console.log(posts)
 
+        expect(1).toBe(1)
+    })
+    afterAll(()=>{
+        datasource.close() //closes all connections in pool
+    })
+} )
+
+
+jest.setTimeout(30000)
+
+/*
 describe("hyperclova test", ()=>{
     test('generate', async()=>{
         const name = "주은"
@@ -19,3 +39,4 @@ describe("hyperclova test", ()=>{
         expect(1).toBe(1)
     })
 })
+*/

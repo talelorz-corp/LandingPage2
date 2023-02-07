@@ -17,9 +17,8 @@ export const isWriteNovelDto = (returnedObj: any): returnedObj is WriteNovelDto 
 
 export async function WriteNovel(name: string, input: string)
     : Promise<{novel : string}> {
-        jest.setTimeout(30000);
         try{
-            const res = await fetch('http://192.168.56.1:3031/generateNovel', {
+            const res = await fetch('http://127.0.0.1:5000/generateNovel', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -42,9 +41,14 @@ export async function WriteNovel(name: string, input: string)
 
 
 export async function GetPosts(
-    userId: string, 
+    userId: UserId, 
     pageCursor: PostId, 
     limit:number
-) : Promise<{posts : Post & {likes: number, hashtags: string[]}}[]> {
-    return []
+) : Promise<{post : Post, likes: number, hashtags?: string[]}[]> {
+    try{
+        let posts = postRepository.getPostsWithLikes(userId, pageCursor, limit)
+        return posts
+    }catch(error){
+        throw Error("post upload error")
+    }
 }
