@@ -1,0 +1,116 @@
+
+<!-- 
+to escape brackets like <>, [], use CDATA       
+<![CDATA[ price < 500 ]]>
+-->
+
+<!-- MAPPER userRepository.js -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="postMapper">  
+
+    <!-- add a single post -->
+    <insert id="createPost">
+        INSERT INTO posts (content, userId)
+        VALUES (#{content}, #{userId});
+    </insert>
+
+    <!-- select all posts from most recent -->
+    <select id="findPostsFromFirst" >
+        SELECT ps.idposts, ps.content, ps.created_at, ps.userId, IFNULL(lks.likes, 0) as likes, IF(b.postId, 1, 0) as melike
+        FROM talelorz.posts AS ps
+        LEFT JOIN talelorz.posts_likes AS lks
+        ON ps.idposts = lks.postId
+        LEFT JOIN (SELECT postId, userId FROM talelorz.likes_by WHERE userId = #{userId}) AS b
+        ON ps.idposts = b.postId
+        ORDER BY ps.idposts DESC
+        LIMIT ${limit}
+    </select>
+
+    <!-- select -->
+    <select id="findPostsInRange" >
+        SELECT ps.idposts, ps.content, ps.created_at, ps.userId, IFNULL(lks.likes, 0) as likes, IF(b.postId, 1, 0) as melike
+        FROM talelorz.posts AS ps
+        LEFT JOIN talelorz.posts_likes AS lks
+        ON ps.idposts = lks.postId
+        LEFT JOIN (SELECT postId, userId FROM talelorz.likes_by WHERE userId = #{userId}) AS b
+        ON ps.idposts = b.postId
+        WHERE <![CDATA[ ps.idposts < ]]> ${idcursor} 
+        ORDER BY ps.idposts DESC
+        LIMIT ${limit}
+    </select>
+
+    <!-- add user tags -->
+    <insert id="addUserTags">
+        INSERT INTO posts_user_tags (postId, targetUserId)
+        VALUES 
+        <foreach collection="targetUserId" item="name" separator=",">
+            (#{postId}, #{name})  
+        </foreach>
+    </insert>
+
+    <!-- create hashtags -->
+    <!-- insert IGNORE will ignore duplicates -->
+    <insert id="createHashtags">
+        INSERT IGNORE INTO hashtags (hashtag) VALUES
+        <foreach collection="hashtags" item="text" separator=",">
+            (#{text})  
+        </foreach>
+    </insert>
+
+    <!-- add hashtags -->
+    <insert id="addHashtags">
+        INSERT INTO posts_hashtags (postId, hashtagId)
+        SELECT #{postId}, idt.id FROM (
+            SELECT id FROM hashtags WHERE
+            <foreach collection="hashtags" item="text" separator="OR">
+                hashtag=#{text}
+            </foreach>
+        ) AS idt
+    </insert> 
+
+    <!-- delete a single post id -->
+    <delete id="deletePost">
+        DELETE FROM posts
+        WHERE
+            uid = #{uesrId}
+    </delete>
+
+    <!-- add a like -->
+    <insert id="addLikeBy">
+        INSERT INTO talelorz.likes_by (postId, userId) 
+            VALUES(${postId}, #{userId})
+    </insert>
+
+    <!-- cancel a like -->
+    <delete id="cancelLikeBy">
+        START TRANSACTION;
+        DELETE FROM talelorz.likes_by WHERE 
+            postId = ${postId} AND userId = #{userId};
+        SELECT ROW_COUNT();
+        COMMIT;
+    </delete>
+
+    <insert id="updateLikesCount">
+        INSERT INTO talelorz.posts_likes (postId, likes, window10m)
+            VALUES(${postId}, 1, 1) ON DUPLICATE KEY UPDATE
+            likes=likes+1
+    </insert>
+
+    <update id="decrementLikesCount">
+        UPDATE posts_likes
+            SET likes=(SELECT IF(<![CDATA[ likes-1 < 0 ]]>, 0, likes-1) AS likes_sanitized)
+            WHERE postId = ${postId}
+    </update>
+
+    <select id="getLikes">
+        SELECT likes, window10m FROM posts_likes
+        WHERE postId = ${postId}
+    </select>
+
+    <!-- flush database -->
+    <delete id="flushTable">
+        DELETE FROM posts
+    </delete>
+</mapper>
+
