@@ -1,2 +1,3 @@
-show create table talelorz.posts
+select * from talelorz.posts
+
 

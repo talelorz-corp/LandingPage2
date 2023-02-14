@@ -8,10 +8,9 @@ export function mysqlDatasource (){
             connectionLimit: 10,
             host: 'localhost',
             user: "apiuser",
-            password: "Eenyminey#20",
-            database: 'xverse',
+            password: "password",
+            database: 'talelorz',
         })
-        console.log('mysql db init!')
     }
     return {
         query: (query: any): any =>{

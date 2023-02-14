@@ -1,11 +1,12 @@
 import {getMapper} from '../sql/mapper'
 import { mysqlDatasource } from './datasource'
-
+import { PostRepository } from './PostRepository'
 const mapper = getMapper('postMapper')
 const datasource = mysqlDatasource()
 
-export const postRepository = {
-    createPost: async (userId: UserId, content:string) => {
+
+class PostRepositoryImpl extends PostRepository {
+    createPost = async (userId: UserId, content:string) => {
         //query
         const query = mapper.makeQuery('createPost', 
         {
@@ -22,8 +23,9 @@ export const postRepository = {
             console.error(error)
             throw new Error('createPost-query-failed')
         }
-    },
-    getPostsWithLikes : async (userId: UserId, idcursor: PostId, limit: number) => {
+    }
+    
+    getPostsWithLikes = async (userId: UserId, idcursor: PostId, limit: number) => {
         let posts: {post: Post, likes: number, hashtags?: string[]}[] = []
 
         try{
@@ -74,3 +76,5 @@ export const postRepository = {
     }
 }
 
+
+export const postRepository = new PostRepositoryImpl()

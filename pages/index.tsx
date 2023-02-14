@@ -36,7 +36,7 @@ export default function Home() {
       <Head>
         <title>Talelorz</title>
       </Head>
-      <main className={styles.main}>
+      <main>
           <p>
             hyperclova&nbsp;
           </p>
