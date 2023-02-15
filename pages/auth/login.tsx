@@ -7,7 +7,7 @@ export default function Login() {
         if (!kakao.isInitialized()) {
             console.log("initing!")
             console.log(process.env.NEXT_PUBLIC_KAKAO_API_KEY)
-            kakao.init(process.env.NEXT_PUBLIC_KAKAO_API_KEY);
+            kakao.init(process.env.NEXT_PUBLIC_KAKAO_API_KEY)
         }
 
         return kakao;

@@ -1,6 +1,6 @@
 import { create } from 'domain';
 import { findSourceMap } from 'module';
-import { User } from '../models/user';
+import { User } from '../models/models';
 import {userRepository} from '../repository/UserRepository'
 
 export enum E_LOGIN_PROVIDERS {

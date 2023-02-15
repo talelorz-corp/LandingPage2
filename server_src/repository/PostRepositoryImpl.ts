@@ -1,11 +1,10 @@
 import {getMapper} from '../sql/mapper'
 import { mysqlDatasource } from './datasource'
-import { PostRepository } from './PostRepository'
 const mapper = getMapper('postMapper')
 const datasource = mysqlDatasource()
 
 
-class PostRepositoryImpl extends PostRepository {
+class PostRepositoryImpl {
     createPost = async (userId: UserId, content:string) => {
         //query
         const query = mapper.makeQuery('createPost', 

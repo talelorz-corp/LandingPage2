@@ -1,10 +1,11 @@
-import {postRepository} from '../repository/PostRepositoryImpl'
+import {postRepository} from '../repository/PostRepository'
+import { PostCreateInput, Post } from '../models/models'
 
 export async function UploadPost(userId: string, content: string)
     : Promise<{postId: PostId}> {
     try{
-        let postId = await postRepository.createPost(userId, content)
-        return {"postId": postId}
+        const post = await postRepository.createPost({userId: userId, content: content})
+        return {"postId": post.id}
     }catch(error){
         throw Error("post upload error")
     }
@@ -44,11 +45,11 @@ export async function GetPosts(
     userId: UserId, 
     pageCursor: PostId, 
     limit:number
-) : Promise<{post : Post, likes: number, hashtags?: string[]}[]> {
+) : Promise<Post[]> {
     try{
-        let posts = postRepository.getPostsWithLikes(userId, pageCursor, limit)
+        let posts = postRepository.getPostsByAuthor(userId, pageCursor, limit)
         return posts
     }catch(error){
-        throw Error("post upload error")
+        throw Error("post find error")
     }
 }
