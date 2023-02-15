@@ -7,40 +7,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-    snsId       String? 
-    provider    String?
-    userId      String      @id
-    firstName   String
-    lastName    String
-    gender      Int         @default(0)
-    createdAt   DateTime    @default(now())
+model likes {
+  postId  Int
+  by      String
+  likedAt DateTime @default(now())
+  user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey")
+  post    post     @relation(fields: [postId], references: [id], map: "Likes_postId_fkey")
 
-    posts       Post[]      //Implicit 1-m relation on posts
-    @@unique(fields :[snsId, provider], name :"snsId_provider_UQ")
-    //likes       Likes[]     //Explicit n-m relation
+  @@id([postId, by])
+  @@index([by], map: "Likes_by_fkey")
 }
 
-model Post {
-    id          Int         @id @default(autoincrement())
-    createdAt   DateTime    @default(now())
-    content     String      @db.Text
-    likes       Int         @default(0)
+model post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String   @db.Text
+  likes     Int      @default(0)
+  authorId  String
+  likes     likes[]
+  user      user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
 
-    author      User        @relation(fields: [authorId], references: [userId])
-    authorId    String      //FK
-
-    //likesby     Likes[]     //Explicit n-m relation
+  @@index([authorId], map: "Post_authorId_fkey")
 }
 
-//who liked which posts? explicit m-n relation
-//model Likes {
-//    post      Post      @relation(fields: [postId], references: [id])
-//    postId    Int       //FK
-//
-//    user      User      @relation(fields: [by], references: [userId])
-//    by        String    //FK
-//
-//    likedAt   DateTime  @default(now())
-//    @@id([postId, by])
-//}
+model user {
+  snsId     String?
+  provider  String?
+  userId    String   @id
+  firstName String
+  lastName  String
+  gender    Int      @default(0)
+  createdAt DateTime @default(now())
+  likes     likes[]
+  post      post[]
+
+  @@unique([snsId, provider], map: "User_snsId_provider_key")
+}

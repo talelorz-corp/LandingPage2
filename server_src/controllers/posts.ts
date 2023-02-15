@@ -44,11 +44,13 @@ export async function WriteNovel(name: string, input: string)
 export async function GetPosts(
     userId: UserId, 
     pageCursor: PostId, 
-    limit:number
-) : Promise<Post[]> {
+    limit:number) :
+    Promise<{posts: Post[], likes:number[]}>{
     try{
-        let posts = postRepository.getPostsByAuthor(userId, pageCursor, limit)
-        return posts
+        const posts = await postRepository.getPostsByAuthor({authorId: userId, userId: userId, pageCursor: pageCursor, limit: limit})
+        const postIds = posts.map((post)=>post.id)
+        const postLikes = await postRepository.getIfUserLikedPosts({userId: userId, postIds: postIds})
+        return {posts: posts, likes: postLikes}
     }catch(error){
         throw Error("post find error")
     }

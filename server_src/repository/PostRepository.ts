@@ -1,4 +1,4 @@
-import { User, PostCreateDto, Post } from '../models/models';
+import { User, PostCreateDto, PostPaginateDto, Post } from '../models/models';
 import {db} from '../../prisma/datasource'
 
 export class PostRepository{
@@ -17,24 +17,48 @@ export class PostRepository{
             throw e
         }
     }
-    getPostsByAuthor = async function(userId: string, pageCursor: number, limit: number): Promise<Post[]> {
+    getPostsByAuthor = async function(q: PostPaginateDto): Promise<Post[]> {
         try{
             const foundPosts : Post[] | null = await db.post.findMany({
                 where: {
                     AND: [
-                        {authorId: userId},
+                        {authorId: q.userId},
                         {id: {
-                            gte: pageCursor
+                            gte: q.pageCursor
                         }}
                     ]
                 },
                 orderBy: {
                     id: "asc"
                 },
-                take: limit
+                take: q.limit
             })
             if(!foundPosts) return []
             return foundPosts
+        }catch(e){
+            console.log(e)
+        }
+        return []
+    }
+    getIfUserLikedPosts = async function({userId, postIds}: {userId: string, postIds: number[]}):
+    Promise<number[]>
+    {
+        try{
+            const foundLikes = await db.likes.findMany({
+                //where likes.postId==postId AND likes.userId==userId
+                where: {
+                    AND: [
+                        {postId: {
+                            in : postIds
+                        }},
+                        {by: userId},
+                    ]
+                },
+                select: {
+                    postId: true
+                }
+            })
+            return foundLikes.map((like) => like.postId)
         }catch(e){
             console.log(e)
         }

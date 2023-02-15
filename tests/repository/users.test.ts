@@ -18,11 +18,12 @@ describe("dbtest", ()=>{
     })
 
     test('getMyPosts', async()=>{
-        const posts = await GetPosts(
-            '쯔를생각해', 6, 3
+        const {posts, likes} = await GetPosts(
+            '쯔를생각해', 2, 4
         ) 
         console.log(posts)
-        expect(posts.length).toBe(0)
+        console.log(likes)
+        expect(likes).toStrictEqual([2, 4])
     })
 
     test('createUser', async()=>{
@@ -56,6 +57,8 @@ describe("dbtest", ()=>{
         expect(1).toBe(1)
 
     })
+
+    
     afterAll(async ()=>{
         await db.$disconnect()
     })
