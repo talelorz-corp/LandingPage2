@@ -1,25 +1,48 @@
 import {db} from '../../prisma/datasource'
-import {Prisma, User} from '@prisma/client'
+import {Prisma, user} from '@prisma/client'
 import { create } from 'domain'
+import * as crypto  from 'crypto-js' 
+import { randomBytes } from 'crypto'
 
-declare type UserCreateInput = Prisma.UserCreateInput
 export class UserRepository{
-    createUser = async function (user: UserCreateInput) {
+    async createUser(user: Partial<user>): Promise<user> {
         try{
-            const createdUser : User | null = await db.user.create({data: user})
-            return createdUser
-        }catch (e){
+            const createdUser = await db.user.create({data: {
+                firstName: user.firstName!,
+                lastName: user.lastName!,
+                userId: user.userId!,
+                snsId: user.snsId,
+                provider: user.provider,
+                tickets: {
+                    create: {}
+                }
+            }})
+            return createdUser!
+        } catch (e){
             throw e
         }
     }
     getUserSNS = async function ({snsId, provider}:{snsId: string, provider: string}) {
         console.log(snsId, provider)
         try {
-            const foundUser : User | null = await db.user.findUnique({where: {
-                snsId_provider_UQ: {
+            const foundUser : user | null = await db.user.findUnique({where: {
+                snsId_provider: {
                     snsId: snsId.toString(),
                     provider: provider,
                 }
+            }})
+            return foundUser
+        } catch(e){
+            if(e instanceof Prisma.PrismaClientKnownRequestError){
+                console.log(e.code)
+            }
+            throw e
+        }
+    }
+    async getUserProfile(userId: string) {
+        try {
+            const foundUser : user | null = await db.user.findUnique({where: {
+                userId: userId
             }})
             return foundUser
         } catch(e){

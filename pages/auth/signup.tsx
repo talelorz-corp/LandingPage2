@@ -1,6 +1,24 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Router from 'next/router'
 
 export default function SignUp() {
+
+    useEffect(()=>{
+        console.log("reload login page")
+        fetch('http://localhost:3000/api/auth/checkLogin',
+        {
+            method : "GET"
+        }
+        )
+        .then((res)=>res.json())
+        .then((data)=>{
+            console.log("fetched: ", data)
+            if(data.isLoggedIn){
+                Router.push("/")
+            }
+        })
+    },[])
+    
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [userId, setUserId] = useState('')
@@ -16,7 +34,13 @@ export default function SignUp() {
         )
         .then((res)=>res.json())
         .then((data)=>{
-            console.log(data)
+            if(data.success===false && data.redirect_url){
+                alert("잘못된 요청입니다.")
+                Router.push(data.redirect_url)
+            }
+            if(data.success && data.redirect_url){
+                Router.push(data.redirect_url)
+            }
         })
     }
     return(

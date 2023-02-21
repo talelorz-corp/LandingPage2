@@ -1,11 +1,46 @@
 import Head from 'next/head'
-import styles from '@/styles/Home.module.css'
-import { useState } from 'react'
+import Router from 'next/router'
+import { useEffect, useState } from 'react'
+
+declare type Post = {
+  id: number;
+  createdAt: Date;
+  content: string;
+  likes: number;
+  authorId: string;
+}
 
 
 export default function Home() {
+  const [userId, setUserId] = useState(null)
+
+  useEffect(()=>{
+    console.log("reload index page")
+    fetch('http://localhost:3000/api/auth/checkLogin',
+    {
+        method : "GET"
+    }
+    )
+    .then((res)=>res.json())
+    .then((data)=>{
+        console.log("fetched: ", data)
+        if(!data.isLoggedIn){
+            Router.push("/auth/login")
+        }
+        else{
+          setUserId(data.userId)
+        }
+    })
+  },[])
+
+  useEffect(()=>{
+    console.log("reload index page2")
+    if(userId){
+      test({pageCursor: 0, limit: 10})
+    }
+  }, [userId])
+
   function test(req: {
-    userId: UserId,
     pageCursor: number,
     limit: number,
   })
@@ -19,17 +54,12 @@ export default function Home() {
     })
     .then(res => res.json())
     .then(data => {
-      console.log(data)
-      const newArr = posts.concat(data)
+      const newArr = data.posts
       setPosts(newArr)
     });
   }
 
-  const [posts, setPosts] = useState<{post: Post, likes: number, hashtags: string[]}[]>([
-    {'post':{'content': 'sample', 'postId': 111, 'userId':'me', 'created_at':'today'},
-      'likes': 11, 
-      'hashtags': []}
-  ])
+  const [posts, setPosts] = useState<Post[]>([])
 
   return (
     <>
@@ -38,20 +68,19 @@ export default function Home() {
       </Head>
       <main>
           <p>
-            hyperclova&nbsp;
+            피드&nbsp;
           </p>
           <div style={{height: "100px", width: "500px", padding:"20px", backgroundColor: "#999999"}}>
-            <textarea> write a prompt</textarea>
+            <textarea/>
           </div>
           <div style={{height: "60px", width: "500px", padding:"20px", backgroundColor: "#99EE99"}}>
-            <button onClick={()=>test({userId: "쯔를생각해", pageCursor: 15, limit: 5})}>
+            <button onClick={()=>test({pageCursor: 2, limit: 5})}>
               send
             </button>
           </div>
           <div style={{width:"500px", height: "700px", backgroundColor: "#EE9999"}}>
             {posts.map((post)=> {
-              console.log(post)
-              return <Postcard post={post.post} likes={post.likes}/>
+              return <Postcard post={post} likes={post.likes}/>
             })}
           </div>
       </main>
@@ -64,13 +93,19 @@ export function Postcard(props:
   {post: Post, likes: number}) 
 {
   return (
-    <div style={{width: "500px", marginTop: "10px", backgroundColor: "#EEEEEE"}}>
-      <p>
-        {props.post.content}
-      </p>
-      <p>
-        Likes: {props.likes}
-      </p>
-    </div>
+    <>
+      <div key={props.post.id} style={{width: "500px", marginTop: "10px", backgroundColor: "#EEEEEE"}}>
+        <p>
+          <i>{props.post.authorId + " _" + props.post.id}</i>
+        </p>
+        <p>
+          {props.post.content}
+        </p>
+        <p>
+          Likes: {props.likes}
+        </p>
+      </div>
+    </>
+
   )
 }

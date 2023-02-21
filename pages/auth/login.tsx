@@ -1,7 +1,25 @@
 import Head from 'next/head'
 import Router from 'next/router'
+import { useEffect } from 'react'
 
 export default function Login() {
+
+    useEffect(()=>{
+        console.log("reload login page")
+        fetch('http://localhost:3000/api/auth/checkLogin',
+        {
+            method : "GET"
+        }
+        )
+        .then((res)=>res.json())
+        .then((data)=>{
+            if(data.isLoggedIn){
+                Router.push("/")
+            }
+        })
+    },[])
+
+
     const kakaoInit = () => {
         const kakao = (window as any).Kakao;
         if (!kakao.isInitialized()) {
@@ -43,7 +61,9 @@ export default function Login() {
                                 if(!data.success && data.redirect_url){
                                     Router.push(data.redirect_url)
                                 }
-                                else{
+                                else if(data.success && data.redirect_url){
+                                    Router.push(data.redirect_url)
+                                }else{
                                     alert("다시 시도해 주세요.")
                                 }
                             })
@@ -60,7 +80,7 @@ export default function Login() {
             }
         })
     }
-
+    
     return (
         <>
             <button onClick={(e: any) => { kakaoLogin(); }}>

@@ -1,11 +1,12 @@
 import {postRepository} from '../repository/PostRepository'
-import { PostCreateInput, Post } from '../models/models'
+import {ticketRepository} from '../repository/TicketRepository'
+import { PostCreateResponseDto, Post } from '../models/models'
 
 export async function UploadPost(userId: string, content: string)
-    : Promise<{postId: PostId}> {
+    : Promise<PostCreateResponseDto> {
     try{
         const post = await postRepository.createPost({userId: userId, content: content})
-        return {"postId": post.id}
+        return {ok: true, post: post}
     }catch(error){
         throw Error("post upload error")
     }

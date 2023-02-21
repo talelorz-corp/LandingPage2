@@ -1,12 +1,12 @@
-import { User, PostCreateDto, PostPaginateDto, Post } from '../models/models';
+import { Ticket, PostCreateDto, PostPaginateDto, Post } from '../models/models';
 import {db} from '../../prisma/datasource'
 
 export class PostRepository{
-    createPost = async function (p: PostCreateDto) {
+    createPost = async function (p: PostCreateDto) : Post{
         try{
             const createdPost : Post | null = await db.post.create({data: {
                 content: p.content,
-                author: {
+                user: {
                     connect: {
                         userId: p.userId, 
                     }
@@ -17,6 +17,7 @@ export class PostRepository{
             throw e
         }
     }
+
     getPostsByAuthor = async function(q: PostPaginateDto): Promise<Post[]> {
         try{
             const foundPosts : Post[] | null = await db.post.findMany({

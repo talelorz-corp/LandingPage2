@@ -2,8 +2,6 @@ import { db } from "../../prisma/datasource"
 import { userRepository } from "../../server_src/repository/UserRepository"
 import { UploadPost, GetPosts } from "../../server_src/controllers/posts"
 describe("dbtest", ()=>{
-
-
     const users = [
         {"userId": "쯔를생각해", "firstName": "쯔위", "lastName": "조"}
     ]
@@ -58,7 +56,6 @@ describe("dbtest", ()=>{
 
     })
 
-    
     afterAll(async ()=>{
         await db.$disconnect()
     })

@@ -22,7 +22,7 @@ model post {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   content   String   @db.Text
-  likes     Int      @default(0)
+  likesCount     Int      @default(0)
   authorId  String
   likes     likes[]
   user      user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
@@ -30,16 +30,36 @@ model post {
   @@index([authorId], map: "Post_authorId_fkey")
 }
 
+model ticket {
+  userId String @id
+  numTickets Int @default(3)
+  lastUpdated DateTime @default(now())//field used to regenerate tickets every day. 
+  user  user  @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey")
+}
+
 model user {
   snsId     String?
   provider  String?
   userId    String   @id
-  firstName String
-  lastName  String
+  firstName String  
+  lastName  String  
   gender    Int      @default(0)
   createdAt DateTime @default(now())
   likes     likes[]
   post      post[]
-
+  tickets   ticket[]
+  followers follow[] @relation(name:"follower_target")
+  following follow[] @relation(name:"follower_origin")
   @@unique([snsId, provider], map: "User_snsId_provider_key")
+}
+
+model follow{
+  originId  String 
+  targetId  String 
+  since DateTime @default(now())
+  origin_user user  @relation(fields:[originId], references: [userId], name:"follower_origin")
+  target_user user  @relation(fields:[targetId], references: [userId],  name:"follower_target")
+
+  @@unique([originId, targetId])
+
 }
