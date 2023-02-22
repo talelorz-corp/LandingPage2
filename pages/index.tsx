@@ -12,7 +12,7 @@ declare type Post = {
 
 
 export default function Home() {
-  const [userId, setUserId] = useState(null)
+  const [userId, setUserId] = useState<string|null>("")
 
   useEffect(()=>{
     console.log("reload index page")
@@ -25,7 +25,7 @@ export default function Home() {
     .then((data)=>{
         console.log("fetched: ", data)
         if(!data.isLoggedIn){
-            Router.push("/auth/login")
+          setUserId(null)
         }
         else{
           setUserId(data.userId)
@@ -38,7 +38,29 @@ export default function Home() {
     if(userId){
       test({pageCursor: 0, limit: 10})
     }
+    else{
+      testVisitor({pageCursor: 0, limit: 10})
+    }
   }, [userId])
+
+  function testVisitor(req: {
+    pageCursor: number,
+    limit: number,
+  })
+  {
+    fetch('http://localhost:3000/api/posts/list/visitor', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(req)
+    })
+    .then(res => res.json())
+    .then(data => {
+      const newArr = data.posts
+      setPosts(newArr)
+    });
+  }
 
   function test(req: {
     pageCursor: number,

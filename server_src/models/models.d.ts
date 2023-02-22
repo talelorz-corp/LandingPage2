@@ -1,11 +1,8 @@
-import {Prisma, user, follow, userSelect, Post, ticket} from '@prisma/client'
+import {Prisma, user, follow, userSelect, post, ticket} from '@prisma/client'
 
 declare type UserCreateInput = Prisma.UserCreateInput
 declare type PostCreateInput = Prisma.PostCreateInput
-declare type PostCreateDto = {
-    userId: string,
-    content: string,
-}
+
 
 declare type PostPaginateDto = {
     authorId?: string, 
@@ -35,7 +32,7 @@ declare type FollowGetResultDto = {
 declare type FollowerInfoDto = Partial<follow & user>
 declare type Follow = follow
 declare type User = user
-declare type Post = Post
+declare type Post = post
 declare type Ticket = ticket
 declare type BooleanOperationResult = {
     success: boolean,
