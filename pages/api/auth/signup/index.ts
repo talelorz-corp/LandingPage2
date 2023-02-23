@@ -34,7 +34,7 @@ export default async function handler(
             else{
                 const snsId = accesstok["loginValue"]
                 const provider = accesstok["provider"]
-                const signupResult = await DoSNSSignUp(body.firstName, body.lastName, body.accountName, snsId, provider)
+                const signupResult = await DoSNSSignUp(body.firstName, body.lastName, body.userId, snsId, provider)
                 
                 if(signupResult.success){
                     const autoLoginResult = await DoSNSLogin(snsId, provider)

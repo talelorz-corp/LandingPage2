@@ -31,7 +31,6 @@ export async function DoSNSLogin(authId: string, provider: E_LOGIN_PROVIDERS) : 
 
 export async function DoSNSSignUp(firstName: string, lastName: string, userId: string, snsId: string, provider: E_LOGIN_PROVIDERS): Promise<{success: boolean, user?: User}>{
     try{
-        console.log("provider: ", provider)
         const createdUser = await userRepository.createUser({
             firstName: firstName,
             lastName: lastName,
@@ -39,6 +38,8 @@ export async function DoSNSSignUp(firstName: string, lastName: string, userId: s
             snsId: snsId.toString(),
             provider: providers[provider],
         })
+        console.log("provider: ", createdUser)
+
         if(createdUser) {
             return {
                 success: true,

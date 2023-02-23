@@ -19,6 +19,7 @@ export class UserRepository{
             }})
             return createdUser!
         } catch (e){
+            console.log(e)
             throw e
         }
     }
