@@ -12,6 +12,12 @@ const nextConfig = {
   sassOptions : {
     includePaths: [path.join(__dirname, 'styles')],
   },
+  images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    domains: ['api.dicebear.com', 'plus.unsplash.com']
+  }
   //rewrites : async () => {
   //  return [
   //    {

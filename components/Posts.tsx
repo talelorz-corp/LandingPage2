@@ -1,46 +1,41 @@
-import React, { useState } from 'react'
-import Post from './Post'
+import React, { useState, useEffect } from "react";
+import Post from "./Post";
 
-const posts = [
+const posts: Post[] = [
   {
-    id: 1,
-    createdAt: Date,
+    postId: 1,
+    created_at: "Date",
     content: "aaaaaaaaaaaaaa",
     likes: 2,
-    authorId: "Taegu",
+    userId: "June",
   },
   {
-    id: 2,
-    createdAt: Date,
+    postId: 2,
+    created_at: "Date",
     content: "aaaaaaaaaaaaaa",
     likes: 2,
-    authorId: "Taegu",
+    userId: "Hanjun",
   },
   {
-    id: 3,
-    createdAt: Date,
+    postId: 3,
+    created_at: "Date",
     content: "aaaaaaaaaaaaaa",
     likes: 2,
-    authorId: "Taegu",
-  }
-]
+    userId: "Taegu",
+  },
+];
 
 function Posts() {
-  
+  //const [posts, setPosts] = useState([]);
+  //useEffect(() => {});
+
   return (
-    //<div>
-    //  {posts.map((post) => (
-    //    <Post 
-    //    //id={post.id}
-    //    authorId={post.authorId}
-    //    content={post.content}
-    //    createdAt={post.createdAt}
-    //    likes={post.likes}
-    //    />
-    //  ))}
-    //</div>
-    {}
-  )
+    <div>
+      {posts?.map((post) => (
+        <Post key={post.postId} post={post} />
+      ))}
+    </div>
+  );
 }
 
 /*function getPosts(req: {
@@ -63,4 +58,4 @@ function Posts() {
   }
   const [posts, setPosts] = useState<Post[]>([])   */
 
-export default Posts
+export default Posts;
