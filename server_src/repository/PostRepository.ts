@@ -6,6 +6,7 @@ import { Prisma} from 'prisma/prisma-client'
 export class PostRepository{
     async createPost (p: Partial<Post>) : Promise<Post>{
         try{
+            console.log(p.authorId, p.createdAt)
             const createdPost : Post | null = await db.post.create({data: {
                 content: p.content!,
                 user: {
@@ -13,23 +14,37 @@ export class PostRepository{
                         userId: p.authorId!, 
                     }
                 },
+                createdAt: p.createdAt || undefined
             }})
             return createdPost
         }catch (e){
             throw e
         }
     }
-
-    shuffleArray(array: Array<any>) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    async getPostsFromRecent(userId: string, cursor: number, limit: number): Promise<(Post & {liked:boolean})[]> {
+    async getPostsFromRecentAnonymous(cursor: number, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
             const whClause = cursor > 0 ? {
+                id: {
+                    lt: cursor
+                }
+            } : undefined
+            const foundPosts = await db.post.findMany({
+                where: whClause,
+                orderBy: {
+                    id: "desc"
+                },
+                take: limit
+            })
+            return foundPosts.map((p)=>{ return {...p, liked:false}})
+        }catch(e){
+            console.log(e)
+        }
+        return []
+    }
+
+    async getPostsFromRecent(userId: string, cursor: number | null, limit: number): Promise<(Post & {liked:boolean})[]> {
+        try {
+            const whClause = cursor ? {
                 id: {
                     lt: cursor
                 }
@@ -55,13 +70,21 @@ export class PostRepository{
         }
         return []
     }
-    async getPostsByFollowedUsers(userId: string, cursor: number, limit: number): Promise<(Post & {liked:boolean})[]> {
+
+
+    async getPostsByFollowedUsers(userId: string, cursor: number | null, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
-            const followings = await followRepository.getFollowingList(userId)
+
+            let followings = await followRepository.getFollowingList(userId)
+            if(followings.length > 400) {
+                //to prevent full table scan when 'in'query gets SUPER long.
+                //the threshold(default 400) should be set near the maximum query optimzation memory for each specific db engine in use.
+                followings = followings.slice(0, 400)
+            }
             let followingsId = followings.map((f)=>f.targetId!) || []
-            this.shuffleArray(followingsId)
+
             let whClause: Prisma.postWhereInput
-            if(cursor < 0){
+            if(!cursor){
                 whClause = {
                     authorId:{
                         in: followingsId
@@ -77,7 +100,7 @@ export class PostRepository{
                         },
                         {
                             id: {
-                            lt: cursor
+                                lt: cursor
                             }
                         }
                     ]
@@ -97,7 +120,6 @@ export class PostRepository{
                     }
                 }
             })
-            console.log("with raw likes after query: ", foundPosts)
             const foundPostsWithLikes = foundPosts.map((p)=>{ return {id: p.id, authorId: p.authorId, likesCount: p.likesCount, content: p.content, createdAt:p.createdAt, liked: p.likes.length > 0 ? true : false}})
             return foundPostsWithLikes
         }catch(e){
@@ -106,7 +128,7 @@ export class PostRepository{
         return []
     }
 
-    getPostsByAuthor = async function(q: PostPaginateDto): Promise<Post[]> {
+    async getPostsByAuthor(q: PostPaginateDto): Promise<Post[]> {
         try{
             const foundPosts : Post[] | null = await db.post.findMany({
                 where: {
@@ -130,7 +152,7 @@ export class PostRepository{
         return []
     }
 
-    getIfUserLikedPosts = async function({userId, postIds}: {userId: string, postIds: number[]}):
+    async getIfUserLikedPosts({userId, postIds}: {userId: string, postIds: number[]}):
     Promise<number[]>
     {
         try{
