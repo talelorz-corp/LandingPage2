@@ -1,6 +1,6 @@
 import { checkLoggedin } from "@/server_src/middlewares/auth";
 import { NextApiRequest, NextApiResponse } from "next";
-import { GetPosts, GetPostsGenerateFeed, UploadPost } from 'server_src/controllers/posts';
+import { GetPostsGenerateFeed } from 'server_src/controllers/posts';
 
 
 

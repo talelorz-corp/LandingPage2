@@ -1,33 +1,133 @@
-import { Ticket, PostPaginateDto, Post } from '../models/models';
-import {db} from '../../prisma/datasource'
+import { PostPaginateDto, Post, PostVisibility } from '../models/models';
+import { db } from '../../prisma/datasource'
 import { followRepository } from './FollowRepository';
-import { Prisma} from 'prisma/prisma-client'
+import { Prisma } from 'prisma/prisma-client'
 
 export class PostRepository{
-    async createPost (p: Partial<Post>) : Promise<Post>{
+    async createPost (p: {userId: string, content:string, visibility?: PostVisibility, shelf?: string, hashtags: string[]}) : Promise<Post>{
         try{
-            console.log(p.authorId, p.createdAt)
+            const shelfOptions =  p.shelf ? {
+                connectOrCreate: {
+                    where: {
+                        name_userId: {
+                            userId: p.userId, name: p.shelf
+                        }
+                    },
+                    create: {
+                        name: p.shelf,
+                        user: {
+                            connect: {
+                                userId: p.userId
+                            }
+                        }
+                    }
+                }
+            } : undefined
             const createdPost : Post | null = await db.post.create({data: {
                 content: p.content!,
+                visibility: p.visibility,
+                shelf: shelfOptions,
                 user: {
                     connect: {
-                        userId: p.authorId!, 
+                        userId: p.userId!, 
                     }
                 },
-                createdAt: p.createdAt || undefined
             }})
             return createdPost
         }catch (e){
             throw e
         }
     }
+
+    async getPosts(filter :{id?: number, authorId?: string, shelf?: string | null}, includePrivate:boolean=false, userId:string|null)
+    :Promise<(Post & {liked:boolean})[]> {
+        try{
+            if(filter.shelf && !filter.authorId){
+                throw Error("authorId must also be provided when shelf is specified")
+            }
+            if(userId){
+                //logged in: get likes as well!
+                const foundPosts = await db.post.findMany({
+                    where: {
+                        id : filter.id,
+                        authorId: filter.authorId,
+                        shelf: filter.shelf === null ? null : {
+                            name: filter.shelf,
+                            userId: filter.authorId
+                        },
+                        visibility: includePrivate ? {} : "PUBLIC"
+                    },
+                    include:{
+                        likes: {
+                            where: {
+                                by: userId
+                            }
+                        }
+                    }
+                })
+                const foundPostsWithLikes = foundPosts.map((p)=>{ 
+                    const post_data = p as Post //pick the 'post' part, omitting the extra likes data
+                    return {...post_data, liked: p.likes?.length > 0 ? true : false}
+                })
+                return foundPostsWithLikes
+            } else {
+                //anonymous mode: exclude likes
+                const foundPosts = await db.post.findMany({
+                    where: {
+                        id : filter.id,
+                        authorId: filter.authorId,
+                        shelf: filter.shelf === null ? null : {
+                            name: filter.shelf
+                        },
+                        visibility: includePrivate ? {} : "PUBLIC"
+                    }
+                })
+                const foundPostsWithLikes = foundPosts.map((p)=>{ 
+                    const post_data = p as Post //pick the 'post' part, omitting the extra likes data
+                    return {...post_data, liked: false}
+                })
+                return foundPostsWithLikes
+            }
+
+        }catch(e){
+            throw(e)
+        }
+        return []
+    }
+
+    async deletePostCheckAuthor(postId: number, userId: string){
+        try{
+            const found = await db.post.findUniqueOrThrow({
+                where:{
+                    id: postId
+                },
+                select:{
+                    authorId: true
+                }
+            })
+            if(found.authorId !== userId) throw Error("deleting someone else's post")
+            await db.post.delete({
+                where: {
+                    id: postId
+                }
+            })
+
+        }catch(e){
+            throw e
+        }
+    }
+
     async getPostsFromRecentAnonymous(cursor: number, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
-            const whClause = cursor > 0 ? {
+            let whClause: Prisma.postWhereInput
+            whClause = cursor > 0 ? {
                 id: {
                     lt: cursor
-                }
-            } : undefined
+                },
+                visibility: "PUBLIC"
+            } : {
+                visibility: "PUBLIC"
+            }
             const foundPosts = await db.post.findMany({
                 where: whClause,
                 orderBy: {
@@ -44,13 +144,16 @@ export class PostRepository{
 
     async getPostsFromRecent(userId: string, cursor: number | null, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
-            const whClause = cursor ? {
+            let whClause: Prisma.postWhereInput
+            whClause = cursor ? {
                 id: {
                     lt: cursor
-                }
-            } : undefined
+                },
+                visibility: "PUBLIC"
+            } : {
+                visibility: "PUBLIC"
+            }
             const foundPosts = await db.post.findMany({
-                where: whClause,
                 orderBy: {
                     id: "desc"
                 },
@@ -63,7 +166,10 @@ export class PostRepository{
                     }
                 }
             })
-            const foundPostsWithLikes = foundPosts.map((p)=>{ return {id: p.id, authorId: p.authorId, likesCount: p.likesCount, content: p.content, createdAt:p.createdAt, liked: p.likes.length > 0 ? true : false}})
+            const foundPostsWithLikes = foundPosts.map((p)=>{ 
+                const post_data = p as Post //pick the 'post' part, omitting the extra likes data
+                return {...post_data, liked: p.likes.length > 0 ? true : false}
+            })
             return foundPostsWithLikes
         }catch(e){
             console.log(e)
@@ -88,22 +194,18 @@ export class PostRepository{
                 whClause = {
                     authorId:{
                         in: followingsId
-                    }
+                    },
+                    visibility: 'PUBLIC'
                 }
             } else {
                 whClause = {
-                    AND: [
-                        {
-                            authorId:{
-                                in: followingsId
-                            }
-                        },
-                        {
-                            id: {
-                                lt: cursor
-                            }
-                        }
-                    ]
+                    authorId:{
+                        in: followingsId
+                    },
+                    id: {
+                        lt: cursor
+                    },
+                    visibility: 'PUBLIC'
                 }
             }
             const foundPosts = await db.post.findMany({
@@ -120,7 +222,10 @@ export class PostRepository{
                     }
                 }
             })
-            const foundPostsWithLikes = foundPosts.map((p)=>{ return {id: p.id, authorId: p.authorId, likesCount: p.likesCount, content: p.content, createdAt:p.createdAt, liked: p.likes.length > 0 ? true : false}})
+            const foundPostsWithLikes = foundPosts.map((p)=>{ 
+                const post_data = p as Post //pick the 'post' part, omitting the extra likes data
+                return {...post_data, liked: p.likes.length > 0 ? true : false}
+            })
             return foundPostsWithLikes
         }catch(e){
             console.log(e)
@@ -132,12 +237,11 @@ export class PostRepository{
         try{
             const foundPosts : Post[] | null = await db.post.findMany({
                 where: {
-                    AND: [
-                        {authorId: q.userId},
-                        {id: {
+                        authorId: q.userId,
+                        id: {
                             gte: q.pageCursor
-                        }}
-                    ]
+                        },
+                        visibility: "PUBLIC"  
                 },
                 orderBy: {
                     id: "asc"
