@@ -1,14 +1,23 @@
-import {Prisma, user, follow, userSelect, post, ticket} from '@prisma/client'
+import {Prisma, user, follow, userSelect, post, ticket, PostVisibility} from '@prisma/client'
 
 declare type UserCreateInput = Prisma.UserCreateInput
 declare type PostCreateInput = Prisma.PostCreateInput
 
+declare type PostVisibility = PostVisibility
 
 declare type PostPaginateDto = {
     authorId?: string, 
     userId?: string,
     pageCursor: number, 
     limit: number
+}
+
+//should we do request type checks?
+declare type CreatePostRequestData = {
+    content: string,
+    shelf?: string,
+    visibility?: PostVisibility,
+    hashtags?: string[],
 }
 
 declare type PostCreateResponseDto = {

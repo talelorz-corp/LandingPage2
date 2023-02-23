@@ -26,14 +26,15 @@ describe("dbtest", ()=>{
 
     test('createUser', async()=>{
         try{
-            const res = await userRepository.createUser({
-                userId: "zyozyo",
-                firstName: "지효",
-                lastName: "박",
-                snsId: "TEST_SNSID_1",
-                provider: "KAKAO",
-            })
-            console.log(res)
+            for(let i = 1; i < 30; i++){
+                await userRepository.createUser({
+                    userId: "sample_user_" + i,
+                    firstName: "fname"+i,
+                    lastName: "lname"+i,
+                    snsId: "sample_id"+i,
+                    provider: "KAKAO",
+                })
+            }
         } catch(e){
             console.log(e)
         }

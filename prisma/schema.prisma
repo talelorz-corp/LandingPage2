@@ -12,29 +12,37 @@ model likes {
   by      String
   likedAt DateTime @default(now())
   user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey")
-  post    post     @relation(fields: [postId], references: [id], map: "Likes_postId_fkey")
+  post    post     @relation(fields: [postId], references: [id], map: "Likes_postId_fkey", onDelete: Cascade)
 
   @@id([postId, by])
   @@index([by], map: "Likes_by_fkey")
 }
 
 model post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  content   String   @db.Text
-  likesCount     Int      @default(0)
-  authorId  String
-  likes     likes[]
-  user      user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
-
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  content     String   @db.Text
+  likesCount  Int      @default(0)
+  authorId    String
+  shelfId     Int?
+  likes       likes[]
+  user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
+  visibility  PostVisibility @default(PUBLIC)
+  shelf       shelf?    @relation(fields: [shelfId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  
   @@index([authorId], map: "Post_authorId_fkey")
 }
 
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+}
+
 model ticket {
-  userId String @id
-  numTickets Int @default(3)
-  lastUpdated DateTime @default(now())//field used to regenerate tickets every day. 
-  user  user  @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey")
+  userId      String    @id
+  numTickets  Int       @default(3)
+  lastUpdated DateTime  @default(now())//field used to regenerate tickets every day. 
+  user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey")
 }
 
 model user {
@@ -50,15 +58,26 @@ model user {
   tickets   ticket[]
   followers follow[] @relation(name:"follower_target")
   following follow[] @relation(name:"follower_origin")
+  shelves   shelf[]
   @@unique([snsId, provider], map: "User_snsId_provider_key")
 }
 
+model shelf {
+  id        Int       @id @default(autoincrement())
+  name      String
+  userId    String
+  createdAt DateTime  @default(now())
+  user      user      @relation(fields:[userId], references: [userId])
+  posts     post[]
+  @@unique([name, userId], name:"name_userId")
+}
+
 model follow{
-  originId  String 
-  targetId  String 
-  since DateTime @default(now())
-  origin_user user  @relation(fields:[originId], references: [userId], name:"follower_origin")
-  target_user user  @relation(fields:[targetId], references: [userId],  name:"follower_target")
+  originId    String 
+  targetId    String 
+  since       DateTime  @default(now())
+  origin_user user      @relation(fields:[originId], references: [userId], name:"follower_origin")
+  target_user user      @relation(fields:[targetId], references: [userId],  name:"follower_target")
 
   @@unique([originId, targetId])
 
