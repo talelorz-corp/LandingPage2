@@ -1,17 +1,44 @@
 import {postRepository} from '../repository/PostRepository'
 import {ticketRepository} from '../repository/TicketRepository'
-import { PostCreateResponseDto, Post } from '../models/models'
+import { Post, PostVisibility } from '../models/models'
 import { reauthenticateWithCredential } from 'firebase/auth'
 
-export async function UploadPost(userId: string, content: string)
-    : Promise<PostCreateResponseDto> {
-    try{
-        const post = await postRepository.createPost({authorId: userId, content: content})
-        return {ok: true, post: post}
-    }catch(error){
-        throw Error("post upload error")
+//export async function UploadPost(userId: string, content: string)
+//    : Promise<PostCreateResponseDto> {
+//    try{
+//        const post = await postRepository.createPost({authorId: userId, content: content})
+//        return {ok: true, post: post}
+//    }catch(error){
+//        throw Error("post upload error")
+//    }
+//}
+
+export async function UploadPost({userId, content, visibility, shelf, hashtags}
+    : {userId: string, content:string, visibility?: PostVisibility, shelf?: string, hashtags?: string[]})
+    : Promise<Post>{
+        try{
+            return await postRepository.createPost({
+                userId:userId, 
+                content:content, 
+                visibility: visibility,
+                shelf: shelf,
+                hashtags: hashtags || []
+             })
+        }
+        catch(e){
+            throw e
+        }
+    }
+
+export async function DeletePost({userId, postId}: {userId: string, postId: number})
+{
+    try{    
+        return postRepository.deletePostCheckAuthor(postId, userId)
+    } catch(e){
+        throw e
     }
 }
+
 
 //type guards
 export type WriteNovelDto = {novel: string;}
@@ -43,20 +70,6 @@ export async function WriteNovel(name: string, input: string)
 }
 
 
-export async function GetPosts(
-    userId: UserId, 
-    pageCursor: PostId, 
-    limit:number) :
-    Promise<{posts: Post[], likes:number[]}>{
-    try{
-        const posts = await postRepository.getPostsByAuthor({authorId: userId, userId: userId, pageCursor: pageCursor, limit: limit})
-        const postIds = posts.map((post)=>post.id)
-        const postLikes = await postRepository.getIfUserLikedPosts({userId: userId, postIds: postIds})
-        return {posts: posts, likes: postLikes}
-    }catch(error){
-        throw Error("post find error")
-    }
-}
 
 
 export async function GetPostsVisitor(

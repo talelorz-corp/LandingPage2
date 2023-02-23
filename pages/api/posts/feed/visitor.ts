@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { GetPostsVisitor, UploadPost } from 'server_src/controllers/posts';
+import { GetPostsVisitor } from 'server_src/controllers/posts';
 
 
 export default async function handler(
