@@ -1,3 +1,4 @@
+import Posts from '@/components/Posts';
 import Head from 'next/head'
 import Router from 'next/router'
 import { useEffect, useState } from 'react'
@@ -104,6 +105,8 @@ export default function Home() {
             {posts.map((post)=> {
               return <Postcard post={post} likes={post.likes}/>
             })}
+          </div>
+          <div>
           </div>
       </main>
     </>
