@@ -2,14 +2,14 @@ import React from "react";
 import { HomeIcon, PlusIcon, UserIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-function Navigation() {
+function Header() {
   const Menus = [
     { name: "Home", icon: <HomeIcon />, dis: "translate-x-0", url: "/" },
     {
       name: "Add",
       icon: <PlusIcon />,
       dis: "translate-x-32",
-      url: "/makeTale",
+      url: "/posts/streamNovel",
     },
     {
       name: "Profile",
@@ -39,4 +39,4 @@ function Navigation() {
   );
 }
 
-export default Navigation;
+export default Header;
