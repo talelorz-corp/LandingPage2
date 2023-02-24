@@ -46,21 +46,34 @@ model ticket {
 }
 
 model user {
-  snsId     String?
-  provider  String?
-  userId    String   @id
-  firstName String  
-  lastName  String  
-  gender    Int      @default(0)
-  createdAt DateTime @default(now())
-  likes     likes[]
-  post      post[]
-  tickets   ticket[]
-  followers follow[] @relation(name:"follower_target")
-  following follow[] @relation(name:"follower_origin")
-  shelves   shelf[]
+  snsId       String?
+  provider    String?
+  userId      String   @id
+  firstName   String  
+  lastName    String  
+  gender      Int      @default(0)
+  createdAt   DateTime @default(now())
+  likes       likes[]
+  post        post[]
+  tickets     ticket[]
+  followers   follow[] @relation(name:"follower_target")
+  following   follow[] @relation(name:"follower_origin")
+  blocked     blockedUser[] @relation(name:"blockedUser_origin")
+  blockedBy   blockedUser[] @relation(name:"blockedUser_target")
+  shelves     shelf[]
   @@unique([snsId, provider], map: "User_snsId_provider_key")
 }
+
+model blockedUser {
+  originId    String 
+  targetId    String 
+  since       DateTime  @default(now())
+  origin_user user      @relation(fields:[originId], references: [userId], name:"blockedUser_origin")
+  target_user user      @relation(fields:[targetId], references: [userId], name:"blockedUser_target")
+
+  @@unique([originId, targetId])
+}
+
 
 model shelf {
   id        Int       @id @default(autoincrement())

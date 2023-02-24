@@ -28,7 +28,6 @@ describe("post", ()=>{
         expect(1).toBe(1)
     })
 
-
     test("anonymous feed", async()=>{
         const posts = await GetPostsVisitor(null)
         posts.forEach((p)=> console.log(p.id, p.authorId, p.createdAt, p.liked))
