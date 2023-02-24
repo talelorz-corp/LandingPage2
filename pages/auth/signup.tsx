@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import Router from 'next/router'
-
 export default function SignUp() {
 
     useEffect(()=>{
@@ -23,13 +22,15 @@ export default function SignUp() {
     const [lastName, setLastName] = useState('')
     const [userId, setUserId] = useState('')
     function signInClickHandler(){
+        const q = Router.query
+        console.log(q)
         fetch('http://localhost:3000/api/auth/signup',
             {
                 method : "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({firstName: firstName, lastName: lastName, userId: userId})
+                body: JSON.stringify({snsId: q.snsId, provider: q.provider, firstName: firstName, lastName: lastName, userId: userId})
             }
         )
         .then((res)=>res.json())

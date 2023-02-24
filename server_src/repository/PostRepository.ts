@@ -144,16 +144,15 @@ export class PostRepository{
 
     async getPostsFromRecent(userId: string, cursor: number | null, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
-            let whClause: Prisma.postWhereInput
-            whClause = cursor ? {
+            let whClause: Prisma.postWhereInput = {
+                visibility: "PUBLIC",
                 id: {
-                    lt: cursor
-                },
-                visibility: "PUBLIC"
-            } : {
-                visibility: "PUBLIC"
+                    lt: cursor || undefined
+                }
             }
+            
             const foundPosts = await db.post.findMany({
+                where: whClause,
                 orderBy: {
                     id: "desc"
                 },

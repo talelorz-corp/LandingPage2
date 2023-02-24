@@ -7,77 +7,49 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ){
-    const body = req.body
+
     const cookies = req.cookies
-    
-    function InstanceOfJwt(obj: any): obj is jwt.JwtPayload {
-        return !isStringLiteral(obj)
-    }
-    if(cookies["token"]){
-        const accesstok = jwt.verify(cookies["token"], "SERVERSIDE_SECRET_TALES")
-        if(InstanceOfJwt(accesstok)){
-            if(accesstok["isLoggedIn"]){
-                console.log("attempting sign up but already logged in")
-                res.json({"success": false, "redirect_url": "/"})
-                return
-            }
-        }
-    }
-    if(cookies["sns_token"]){
-        const accesstok = jwt.verify(cookies["sns_token"], "SERVERSIDE_SECRET_TALES")
-        if(InstanceOfJwt(accesstok)){
-            if(accesstok["isLoggedIn"]){
-                console.log("attempting sign up but already logged in")
-                res.json({"success": false, "redirect_url": "/"})
-                return
-            }
-            else{
-                const snsId = accesstok["loginValue"]
-                const provider = accesstok["provider"]
-                const signupResult = await DoSNSSignUp(body.firstName, body.lastName, body.userId, snsId, provider)
-                
-                if(signupResult.success){
-                    const autoLoginResult = await DoSNSLogin(snsId, provider)
-                    if(autoLoginResult.success){
-                        const token = jwt.sign({ userId: autoLoginResult.user?.userId, isLoggedIn: true }, "SERVERSIDE_SECRET_TALES")
-                        res.setHeader('Set-Cookie', `token=${token}; path=/; maxAge=200; httpOnly:true`)
-                        res.json({success: true, redirect_url:'/'})
-                        return
-                    }
-                    else{
-                        res.json({...signupResult, redirect_url:'/auth/login'})
-                        return
-                    }
-                }
-                res.json(signupResult)
-                return
-            }
-        }
-    }
-    else if(cookies["test_signup_token"]){
-        const accesstok = JSON.parse(cookies["test_signup_token"])
-        const snsId: string= accesstok.loginValue
-        const provider: E_LOGIN_PROVIDERS= accesstok.provider
-        const signupResult = await DoSNSSignUp(body.firstName, body.lastName, body.userId, snsId, provider)
-            if(signupResult.success){
-                const autoLoginResult = await DoSNSLogin(snsId, provider)
-                if(autoLoginResult.success){
-                    const token = jwt.sign({ userId: autoLoginResult.user?.userId, isLoggedIn: true }, "SERVERSIDE_SECRET_TALES")
-                    res.setHeader('Set-Cookie', `token=${token}; path=/; maxAge=200; httpOnly:true`)
-                    res.json({success: true, redirect_url:'/'})
-                    return
-                }
-                else{
-                    res.json({...signupResult, redirect_url:'/auth/login'})
-                    return
-                }
-            }
-            res.json(signupResult)
+
+    if(req.headers["authorization"]){
+        const accesstok: jwt.JwtPayload | string = jwt.verify(req.headers["authorization"].split("Bearer ")[1], "SERVERSIDE_SECRET_TALES")
+        const accessJwt = accesstok as jwt.JwtPayload
+        if(accessJwt && accessJwt["isLoggedIn"]){
+            console.log("attempting sign in but already logged in")
+            res.json({"success": false, "redirect_url": "/"})
             return
+        }
     }
-    else{
-        res.json({"success": false, redirect_url:"/auth/login"})
-        return
+    else if(cookies["token"]){
+        const accesstok = jwt.verify(cookies["token"], "SERVERSIDE_SECRET_TALES")
+        const accessJwt = accesstok as jwt.JwtPayload
+        if(accessJwt && accessJwt["isLoggedIn"]){
+            console.log("attempting sign in but already logged in")
+            res.json({"success": false, "redirect_url": "/"})
+            return
+        }
+    }   
+
+
+    //perform sign up
+    const providers: {[key: string]: E_LOGIN_PROVIDERS} = {'KAKAO': E_LOGIN_PROVIDERS.KAKAO, 'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE}
+    const form : {snsId: string, provider: string, firstName: string, lastName: string, userId: string} = req.body
+    const signupResult = await DoSNSSignUp(form.firstName, form.lastName, form.userId, form.snsId, providers[form.provider])
+    
+
+    //perform auto login
+    if(signupResult.success){
+        const loginResult = await DoSNSLogin(form.snsId, providers[form.provider])
+        if(loginResult.success){
+            const token = jwt.sign({ userId: loginResult.user?.userId, isLoggedIn: true, timestamp: Date.now() }, "SERVERSIDE_SECRET_TALES")
+            res.setHeader('Set-Cookie', `token=${token}; path=/; maxAge=200; httpOnly:true`)
+            return res.json({"success": true, "user": loginResult.user , "redirect_url": "/"})
+        }
+        else{
+            //sign up has succeeded but login has not.
+            return res.json({...signupResult, redirect_url:'/auth/login'})
+        }
     }
-    res.json({"success": false})
+
+    return res.json(signupResult)
+        
 }

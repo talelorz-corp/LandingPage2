@@ -2,6 +2,38 @@ import { User, FollowerInfoDto, FollowGetResultDto} from '../models/models';
 import {db} from '../../prisma/datasource'
 
 export class FollowRepository{
+    async deleteFollowing(userId: string, targetId: string, options: {deleteAll: boolean} | null = null){
+        try{
+            await db.follow.delete({
+                where: {
+                    originId_targetId: {
+                        originId: userId,
+                        targetId: targetId,
+                    }
+                }
+            })
+        } catch(e){
+            throw e
+        }
+    }
+
+    //this function is for internal use only
+    //i.e. user blocks another user -> follow in both directions are deleted
+    async deleteFollower(userId: string, targetId: string){
+        try{
+            await db.follow.delete({
+                where: {
+                    originId_targetId: {
+                        originId: targetId,
+                        targetId: userId,
+                    }
+                }
+            })
+        } catch(e){
+            throw e
+        }
+    }
+
     async addFollower(userId: string, targetId: string): Promise<boolean> {
         try{
             await db.follow.create({
