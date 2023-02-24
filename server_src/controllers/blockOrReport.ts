@@ -1,21 +1,16 @@
 import { followRepository } from "../repository/FollowRepository"
-import { blockRepository } from "../repository/BlockRepository"
-import { BooleanOperationResult, FollowerInfoDto } from "../models/models"
+import { blockRepository } from "../repository/BlockOrReportRepository"
 
 export async function BlockUser(userId: string, targetId: string){
     try{
         await blockRepository.AddBlock(userId, targetId)
-        await followRepository.deleteFollowing(userId, targetId)
-        await followRepository.deleteFollower(userId, targetId)
+        await followRepository.tryDeleteFollowing(userId, targetId)
+        await followRepository.tryDeleteFollower(userId, targetId)
     }
     catch(e){
         console.log(e)
         throw e
     }
-}
-
-export async function UnBlockUser(userId: string, targetId: string){
-    
 }
 
 export async function GetUsersIBlocked(userId: string){

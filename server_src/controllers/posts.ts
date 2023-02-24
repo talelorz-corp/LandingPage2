@@ -91,16 +91,21 @@ export async function GetPostsGenerateFeed(
     let idFilter: number[] = []
     if(!followingCursor){
         batch0 = await postRepository.getPostsByFollowedUsers(userId, null, 5)
+        console.log("batch 0 done ________ ")
         if(batch0.length > 0){
             followingCursor = batch0[batch0.length - 1].id
         }
         idFilter = idFilter.concat(batch0.map((p)=>p.id))
     }
     batch = await postRepository.getPostsByFollowedUsers(userId, followingCursor, 5)
+    console.log("batch 1 follower ________ ")
+
     const nextFollowingCursor = batch.length > 0 ? batch[batch.length -1].id : followingCursor
     idFilter = idFilter.concat(batch.map((p)=>p.id))
     
     const recentPosts = await postRepository.getPostsFromRecent(userId, globalCursor, 10-batch.length)
+    console.log("batch 1 global ________ ")
+    
     const nextGlobalCursor = recentPosts.length > 0 ? recentPosts[recentPosts.length -1].id : globalCursor
     recentPosts.forEach((p)=>{
         if(!idFilter.includes(p.id)){

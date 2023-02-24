@@ -2,7 +2,7 @@ import { User, FollowerInfoDto, FollowGetResultDto} from '../models/models';
 import {db} from '../../prisma/datasource'
 
 export class FollowRepository{
-    async deleteFollowing(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
+    async tryDeleteFollowing(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
         try{
             if(options?.deleteAll){
                 await db.follow.deleteMany({
@@ -20,14 +20,15 @@ export class FollowRepository{
                     }
                 })
             }
-        } catch(e){
-            throw e
+        } catch(e: any){
+            if(e.code == 'P2025') return
+            throw(e)
         }
     }
 
     //this function is for internal use only
     //i.e. user blocks another user -> follow in both directions are deleted
-    async deleteFollower(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
+    async tryDeleteFollower(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
         try{
             if(options?.deleteAll){
                 await db.follow.deleteMany({
@@ -45,8 +46,8 @@ export class FollowRepository{
                     }
                 })
             }
-
-        } catch(e){
+        } catch(e: any){
+            if(e.code == 'P2025') return
             throw e
         }
     }

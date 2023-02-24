@@ -2,6 +2,7 @@ import { PostPaginateDto, Post, PostVisibility } from '../models/models';
 import { db } from '../../prisma/datasource'
 import { followRepository } from './FollowRepository';
 import { Prisma } from 'prisma/prisma-client'
+import { blockRepository } from './BlockOrReportRepository';
 
 export class PostRepository{
     async createPost (p: {userId: string, content:string, visibility?: PostVisibility, shelf?: string, hashtags: string[]}) : Promise<Post>{
@@ -150,7 +151,7 @@ export class PostRepository{
                     lt: cursor || undefined
                 }
             }
-            
+                
             const foundPosts = await db.post.findMany({
                 where: whClause,
                 orderBy: {
@@ -165,7 +166,20 @@ export class PostRepository{
                     }
                 }
             })
-            const foundPostsWithLikes = foundPosts.map((p)=>{ 
+
+            const reportedPosts = await blockRepository.GetMyReports(userId)
+            const reportedPostsIds = reportedPosts.map((p)=>p.postId)
+            let foundPostsAfterFilter = foundPosts.filter((p)=>
+                !reportedPostsIds.includes(p.id)
+            )
+
+            const reportedUsers = await blockRepository.GetBlockedUsers(userId)
+            const reportedUsersIds = reportedUsers.map((u)=>u.targetId)
+            foundPostsAfterFilter = foundPostsAfterFilter.filter((p)=>
+                !reportedUsersIds.includes(p.authorId)
+            )
+            
+            const foundPostsWithLikes = foundPostsAfterFilter.map((p)=>{ 
                 const post_data = p as Post //pick the 'post' part, omitting the extra likes data
                 return {...post_data, liked: p.likes.length > 0 ? true : false}
             })
@@ -176,10 +190,8 @@ export class PostRepository{
         return []
     }
 
-
     async getPostsByFollowedUsers(userId: string, cursor: number | null, limit: number): Promise<(Post & {liked:boolean})[]> {
         try {
-
             let followings = await followRepository.getFollowingList(userId)
             if(followings.length > 400) {
                 //to prevent full table scan when 'in'query gets SUPER long.
@@ -187,8 +199,8 @@ export class PostRepository{
                 followings = followings.slice(0, 400)
             }
             let followingsId = followings.map((f)=>f.targetId!) || []
-
             let whClause: Prisma.postWhereInput
+            
             if(!cursor){
                 whClause = {
                     authorId:{
@@ -207,6 +219,8 @@ export class PostRepository{
                     visibility: 'PUBLIC'
                 }
             }
+
+
             const foundPosts = await db.post.findMany({
                 where: whClause,
                 orderBy: {
@@ -221,11 +235,22 @@ export class PostRepository{
                     }
                 }
             })
-            const foundPostsWithLikes = foundPosts.map((p)=>{ 
+
+            const reportedPosts = await blockRepository.GetMyReports(userId)
+            const reportedPostsIds = reportedPosts.map((p)=>p.postId)
+            const foundPostsAfterFilter = foundPosts.filter((p)=>{
+                return !reportedPostsIds.includes(p.id)
+
+            })
+
+
+            const foundPostsWithLikes = foundPostsAfterFilter.map((p)=>{ 
                 const post_data = p as Post //pick the 'post' part, omitting the extra likes data
                 return {...post_data, liked: p.likes.length > 0 ? true : false}
             })
+
             return foundPostsWithLikes
+
         }catch(e){
             console.log(e)
         }
@@ -247,6 +272,7 @@ export class PostRepository{
                 },
                 take: q.limit
             })
+
             if(!foundPosts) return []
             return foundPosts
         }catch(e){

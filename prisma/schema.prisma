@@ -29,7 +29,7 @@ model post {
   user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey", onDelete: Cascade)
   visibility  PostVisibility @default(PUBLIC)
   shelf       shelf?    @relation(fields: [shelfId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  
+  reports    reportedPosts[]
   @@index([authorId], map: "Post_authorId_fkey")
 }
 
@@ -60,6 +60,7 @@ model user {
   following   follow[] @relation(name:"follower_origin")
   blocked     blockedUser[] @relation(name:"blockedUser_origin")
   blockedBy   blockedUser[] @relation(name:"blockedUser_target")
+  reportedPost  reportedPosts[]
   shelves     shelf[]
   @@unique([snsId, provider], map: "User_snsId_provider_key")
 }
@@ -74,6 +75,14 @@ model blockedUser {
   @@unique([originId, targetId])
 }
 
+model reportedPosts {
+  reportId    Int       @id @default(autoincrement())
+  postId      Int
+  userId      String
+  reportedAt  DateTime  @default(now())
+  post        post      @relation(fields:[postId], references: [id], onDelete: Cascade)
+  user        user      @relation(fields:[userId], references: [userId], onDelete: Cascade)
+}
 
 model shelf {
   id        Int       @id @default(autoincrement())
