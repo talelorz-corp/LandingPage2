@@ -2,16 +2,24 @@ import { User, FollowerInfoDto, FollowGetResultDto} from '../models/models';
 import {db} from '../../prisma/datasource'
 
 export class FollowRepository{
-    async deleteFollowing(userId: string, targetId: string, options: {deleteAll: boolean} | null = null){
+    async deleteFollowing(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
         try{
-            await db.follow.delete({
-                where: {
-                    originId_targetId: {
-                        originId: userId,
-                        targetId: targetId,
+            if(options?.deleteAll){
+                await db.follow.deleteMany({
+                    where: {
+                        originId: userId //delete everyone from my following list, so I don't follow anyone.
                     }
-                }
-            })
+                })
+            } else if(targetId) {
+                await db.follow.delete({
+                    where: {
+                        originId_targetId: {
+                            originId: userId!,
+                            targetId: targetId!,
+                        }
+                    }
+                })
+            }
         } catch(e){
             throw e
         }
@@ -19,16 +27,25 @@ export class FollowRepository{
 
     //this function is for internal use only
     //i.e. user blocks another user -> follow in both directions are deleted
-    async deleteFollower(userId: string, targetId: string){
+    async deleteFollower(userId: string, targetId: string | null, options: {deleteAll: boolean} | undefined = undefined){
         try{
-            await db.follow.delete({
-                where: {
-                    originId_targetId: {
-                        originId: targetId,
-                        targetId: userId,
+            if(options?.deleteAll){
+                await db.follow.deleteMany({
+                    where: {
+                        targetId: userId
                     }
-                }
-            })
+                })
+            } else if(targetId){
+                await db.follow.delete({
+                    where: {
+                        originId_targetId: {
+                            originId: targetId,
+                            targetId: userId,
+                        }
+                    }
+                })
+            }
+
         } catch(e){
             throw e
         }

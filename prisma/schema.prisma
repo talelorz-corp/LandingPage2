@@ -11,7 +11,7 @@ model likes {
   postId  Int
   by      String
   likedAt DateTime @default(now())
-  user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey")
+  user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey", onDelete: Cascade)
   post    post     @relation(fields: [postId], references: [id], map: "Likes_postId_fkey", onDelete: Cascade)
 
   @@id([postId, by])
@@ -26,7 +26,7 @@ model post {
   authorId    String
   shelfId     Int?
   likes       likes[]
-  user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
+  user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey", onDelete: Cascade)
   visibility  PostVisibility @default(PUBLIC)
   shelf       shelf?    @relation(fields: [shelfId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   
@@ -42,7 +42,7 @@ model ticket {
   userId      String    @id
   numTickets  Int       @default(3)
   lastUpdated DateTime  @default(now())//field used to regenerate tickets every day. 
-  user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey")
+  user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey", onDelete: Cascade)
 }
 
 model user {
@@ -68,8 +68,8 @@ model blockedUser {
   originId    String 
   targetId    String 
   since       DateTime  @default(now())
-  origin_user user      @relation(fields:[originId], references: [userId], name:"blockedUser_origin")
-  target_user user      @relation(fields:[targetId], references: [userId], name:"blockedUser_target")
+  origin_user user      @relation(fields:[originId], references: [userId], name:"blockedUser_origin", onDelete: Cascade)
+  target_user user      @relation(fields:[targetId], references: [userId], name:"blockedUser_target", onDelete: Cascade)
 
   @@unique([originId, targetId])
 }
@@ -89,8 +89,8 @@ model follow{
   originId    String 
   targetId    String 
   since       DateTime  @default(now())
-  origin_user user      @relation(fields:[originId], references: [userId], name:"follower_origin")
-  target_user user      @relation(fields:[targetId], references: [userId],  name:"follower_target")
+  origin_user user      @relation(fields:[originId], references: [userId], name:"follower_origin", onDelete: Cascade)
+  target_user user      @relation(fields:[targetId], references: [userId],  name:"follower_target", onDelete: Cascade)
 
   @@unique([originId, targetId])
 

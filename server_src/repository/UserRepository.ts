@@ -5,6 +5,7 @@ import * as crypto  from 'crypto-js'
 import { randomBytes } from 'crypto'
 
 export class UserRepository{
+
     async createUser(user: Partial<user>): Promise<user> {
         try{
             const createdUser = await db.user.create({data: {
@@ -22,7 +23,8 @@ export class UserRepository{
             throw e
         }
     }
-    getUserSNS = async function ({snsId, provider}:{snsId: string, provider: string}) {
+
+    async getUserSNS({snsId, provider}:{snsId: string, provider: string}) {
         console.log(snsId, provider)
         try {
             const foundUser : user | null = await db.user.findUnique({where: {
@@ -39,6 +41,19 @@ export class UserRepository{
             throw e
         }
     }
+
+    async deleteUser(userId: string) {
+        try{
+            await db.user.delete({
+                where:{
+                    userId: userId
+                }
+            })
+        }catch(e){
+            throw e
+        }
+    }
+
     async getUserProfile(userId: string) {
         try {
             const foundUser : user | null = await db.user.findUnique({where: {
