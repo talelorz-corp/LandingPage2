@@ -3,6 +3,7 @@ import { useInfiniteQuery } from "react-query";
 import Post from "./Post";
 import { stat } from "fs";
 import InfiniteScroll from "react-infinite-scroller";
+import useIntersectionObserver from "../hooks/useIntersectionObserver";
 
 function Posts() {
   //const [posts, setPosts] = useState([]);
@@ -65,22 +66,47 @@ function Posts() {
     //});
   };
   //const [posts, setPosts] = useState<Post[]>([]);
+  useIntersectionObserver({
+    root: null,
+    target: bottom,
+    onIntersect: fetchNextPage,
+    enabled: hasNextPage,
+    rootMargin: "0px",
+    threshold: 1.0,
+  });
 
+  //return (
+  //  <div>
+  //    {status === "loading" && <p>불러오는 중</p>}
+  //    {status === "error" && <p>에러 발생</p>}
+  //    <InfiniteScroll loadMore={() => fetchNextPage()} hasMore={hasNextPage}>
+  //      {status === "success" &&
+  //        data.pages.map((group, index) => (
+  //          <div key={index}>
+  //            {group.posts.map((post: Post) => (
+  //              <Post key={post.postId} post={post} />
+  //            ))}
+  //          </div>
+  //        ))}
+  //    </InfiniteScroll>
+  //    <button onClick={() => fetchNextPage()}>더 불러오기</button>
+  //    {isFetchingNextPage && <p>계속 불러오는 중</p>}
+  //  </div>
+  //);
   return (
     <div>
       {status === "loading" && <p>불러오는 중</p>}
       {status === "error" && <p>에러 발생</p>}
-      <InfiniteScroll loadMore={() => fetchNextPage()} hasMore={hasNextPage}>
-        {status === "success" &&
-          data.pages.map((group, index) => (
-            <div key={index}>
-              {group.posts.map((post: Post) => (
-                <Post key={post.postId} post={post} />
-              ))}
-            </div>
-          ))}
-      </InfiniteScroll>
+      {status === "success" &&
+        data.pages.map((group, index) => (
+          <div key={index}>
+            {group.posts.map((post: Post) => (
+              <Post key={post.postId} post={post} />
+            ))}
+          </div>
+        ))}
       <button onClick={() => fetchNextPage()}>더 불러오기</button>
+      <div ref={bottom} />
       {isFetchingNextPage && <p>계속 불러오는 중</p>}
     </div>
   );

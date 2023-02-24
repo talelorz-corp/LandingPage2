@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   EllipsisHorizontalIcon,
   HeartIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
-import { HeartIconFilled } from "@heroicons/react/24/solid";
+import { HeartIcon as HeartIconFilled } from "@heroicons/react/24/solid";
 import Avatar from "./Avatar";
 import Image from "next/image";
 import ExampleImage from "../public/img/tale-example.jpg";
@@ -14,6 +14,9 @@ type Props = {
 };
 
 function Post({ post }: Props) {
+  const target = useRef(null);
+  const [visible, setVisible] = useState(false);
+
   return (
     <div className="bg-white my-7 border rounded-sm">
       {/* Header */}
