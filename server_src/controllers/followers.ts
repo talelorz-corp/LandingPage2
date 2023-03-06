@@ -19,7 +19,7 @@ export async function AddFollower(userId: string, targetId: string)
 
 export async function Unfollow(userId: string, targetId: string){
     try{
-        await followRepository.deleteFollowing(userId, targetId)
+        await followRepository.tryDeleteFollowing(userId, targetId)
     } catch(e){
         throw e
     }

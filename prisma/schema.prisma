@@ -89,7 +89,7 @@ model shelf {
   name      String
   userId    String
   createdAt DateTime  @default(now())
-  user      user      @relation(fields:[userId], references: [userId])
+  user      user      @relation(fields:[userId], references: [userId], onDelete: Cascade)
   posts     post[]
   @@unique([name, userId], name:"name_userId")
 }

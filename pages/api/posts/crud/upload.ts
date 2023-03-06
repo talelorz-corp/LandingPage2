@@ -8,10 +8,15 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ){
-    const {isLoggedIn, userId} = checkLoggedin(req, res)
-    if(!isLoggedIn || !userId) return
+    try{
+        const {isLoggedIn, userId} = checkLoggedin(req, res)
+        if(!isLoggedIn || !userId) return
+    
+        let reqData : CreatePostRequestData = req.body
+        let post = await UploadPost({userId, ...reqData})
+        res.json(post)
+    } catch(e){
+        res.status(400).end()
+    }
 
-    let reqData : CreatePostRequestData = req.body
-    let post = await UploadPost({userId, ...reqData})
-    res.json(post)
 }

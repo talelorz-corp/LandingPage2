@@ -89,8 +89,7 @@ export class PostRepository{
                 })
                 return foundPostsWithLikes
             }
-
-        }catch(e){
+        } catch(e){
             throw(e)
         }
         return []
@@ -112,8 +111,8 @@ export class PostRepository{
                     id: postId
                 }
             })
-
-        }catch(e){
+        } catch(e: any){
+            if(e.code == 'P2025') return
             throw e
         }
     }
@@ -304,6 +303,52 @@ export class PostRepository{
             console.log(e)
         }
         return []
+    }
+
+    async modifyPostCheckAuthor(
+        userId: string, 
+        postId: number, 
+        {visibility, shelf}: {visibility?: PostVisibility; shelf?: string | null}
+    ){
+        try{
+            const found = await db.post.findUniqueOrThrow({
+                where:{
+                    id: postId
+                },
+                select:{
+                    authorId: true
+                }
+            })
+            if(found.authorId !== userId) throw Error("cannot modify someone else's post")
+            await db.post.update({
+                where:{
+                    id: postId
+                },
+                data:{
+                    visibility: visibility,
+                    shelf: shelf ? {
+                            connectOrCreate: 
+                            {
+                                where:{
+                                    name_userId: {
+                                        name: shelf,
+                                        userId: userId,
+                                    }
+                                },
+                                create:{
+                                    name: shelf,
+                                    userId: userId
+                                }
+                            } 
+                        }:{
+                            disconnect: true
+                        }
+                }
+            })
+        } catch(e: any){
+            if(e.code == 'P2025') throw Error("nonexisting post.")
+            throw e
+        }
     }
 }
 
