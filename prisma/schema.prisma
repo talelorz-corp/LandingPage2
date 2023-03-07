@@ -45,6 +45,16 @@ model ticket {
   user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey", onDelete: Cascade)
 }
 
+enum AgeRange {
+  Age_10
+  Age10_15
+  Age15_20
+  Age20_25
+  Age25_30
+  Age30_35
+  Age35_
+}
+
 model user {
   snsId       String?
   provider    String?
@@ -52,6 +62,8 @@ model user {
   firstName   String  
   lastName    String  
   gender      Int      @default(0)
+  ageRange    AgeRange?
+  job         String?
   createdAt   DateTime @default(now())
   likes       likes[]
   post        post[]

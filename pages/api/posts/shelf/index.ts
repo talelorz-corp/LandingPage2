@@ -9,15 +9,15 @@ export default async function handler(
     try{
         switch(req.body.op!){
             case 'LIST':
-
+                
             case 'SET':
 
             case 'DELETE':
 
             case 'CREATE':
         }
-    }catch(e) {
-
+    }catch(e: any) {
+        console.log(e.message)
     }
 
     res.status(500).end()

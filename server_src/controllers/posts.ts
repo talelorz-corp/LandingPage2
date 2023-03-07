@@ -1,5 +1,4 @@
 import {postRepository} from '../repository/PostRepository'
-import {ticketRepository} from '../repository/TicketRepository'
 import { Post, PostVisibility } from '../models/models'
 
 export async function UploadPost({userId, content, visibility, shelf, hashtags}

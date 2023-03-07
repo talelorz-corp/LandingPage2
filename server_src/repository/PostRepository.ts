@@ -5,7 +5,7 @@ import { Prisma } from 'prisma/prisma-client'
 import { blockRepository } from './BlockOrReportRepository';
 
 export class PostRepository{
-    async createPost (p: {userId: string, content:string, visibility?: PostVisibility, shelf?: string, hashtags: string[]}) : Promise<Post>{
+    async createPost (p: {userId: string, content:string, visibility?: PostVisibility, shelf?: string, hashtags?: string[]}) : Promise<Post>{
         try{
             const shelfOptions =  p.shelf ? {
                 connectOrCreate: {
