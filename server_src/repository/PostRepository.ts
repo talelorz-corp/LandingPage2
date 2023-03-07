@@ -350,6 +350,65 @@ export class PostRepository{
             throw e
         }
     }
+
+    async addLike(
+        userId: string,
+        postId: number,
+    ){
+        try{
+            await db.$transaction([
+                db.likes.create({
+                    data: {
+                        postId: postId,
+                        by: userId,
+                    }
+                }), db.post.update({
+                    where: {
+                        id: postId,
+                    },
+                    data: {
+                        likesCount:{
+                            increment: 1
+                        }
+                    }
+                })
+            ])
+        } catch(e:any){
+            console.log(e.message)
+            throw e
+        }
+    }
+
+    async removeLike(
+        userId: string,
+        postId: number,
+    ){
+        try{
+            await db.$transaction([
+                db.likes.delete({
+                    where: {
+                        postId_by:{
+                            postId: postId,
+                            by: userId,
+                        }
+                    }
+                }),
+                db.post.update({
+                    where: {
+                        id: postId,
+                    },
+                    data: {
+                        likesCount:{
+                            decrement: 1
+                        }
+                    }
+                })
+            ])
+        }catch(e:any){
+            console.log(e.message)
+            throw e
+        }
+    }
 }
 
 export const postRepository = new PostRepository()

@@ -27,6 +27,18 @@ export async function DeletePost({userId, postId}: {userId: string, postId: numb
     }
 }
 
+export async function LikesOp(userId: string, postId: number, unlike: boolean = false){
+    try{
+        if(unlike){
+            await postRepository.removeLike(userId, postId)
+        } else {
+            await postRepository.addLike(userId, postId)
+        }
+    } catch(e){
+        throw e
+    }
+}
+
 export async function GetPostsVisitor(
     globalCursor: number | null
 ) : Promise<(Post & {liked:boolean})[]>
