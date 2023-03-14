@@ -17,6 +17,14 @@ export async function AddFollower(userId: string, targetId: string)
     }
 }
 
+export async function Unfollow(userId: string, targetId: string){
+    try{
+        await followRepository.tryDeleteFollowing(userId, targetId)
+    } catch(e){
+        throw e
+    }
+}
+
 export async function ListFollowers(userId: string): Promise<BooleanOperationResult & {followers: FollowerInfoDto[]}>{
     try{
         const followers = await followRepository.getFollowerList(userId)

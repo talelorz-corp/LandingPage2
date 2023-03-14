@@ -12,14 +12,20 @@ const nextConfig = {
   sassOptions : {
     includePaths: [path.join(__dirname, 'styles')],
   },
-  //rewrites : async () => {
-  //  return [
-  //    {
-  //      source: '/api/:path*',
-  //      destination: 'http://localhost:5000/:path*'
-  //    }
-  //  ]
-  //}
+  images: {
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    domains: ['api.dicebear.com', 'plus.unsplash.com']
+  },
+  rewrites : async () => {
+    return [
+      {
+        source: '/oauth2.0/:path*', // url이 source에 해당될 경우
+        destination: 'https://nid.naver.com/oauth2.0/:path*', // destination으로 redirect
+      },
+    ]
+  }
 }
 
 module.exports = nextConfig

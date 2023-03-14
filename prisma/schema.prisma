@@ -11,7 +11,7 @@ model likes {
   postId  Int
   by      String
   likedAt DateTime @default(now())
-  user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey")
+  user    user     @relation(fields: [by], references: [userId], map: "Likes_by_fkey", onDelete: Cascade)
   post    post     @relation(fields: [postId], references: [id], map: "Likes_postId_fkey", onDelete: Cascade)
 
   @@id([postId, by])
@@ -26,10 +26,10 @@ model post {
   authorId    String
   shelfId     Int?
   likes       likes[]
-  user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey")
+  user        user     @relation(fields: [authorId], references: [userId], map: "Post_authorId_fkey", onDelete: Cascade)
   visibility  PostVisibility @default(PUBLIC)
   shelf       shelf?    @relation(fields: [shelfId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  
+  reports    reportedPosts[]
   @@index([authorId], map: "Post_authorId_fkey")
 }
 
@@ -42,24 +42,58 @@ model ticket {
   userId      String    @id
   numTickets  Int       @default(3)
   lastUpdated DateTime  @default(now())//field used to regenerate tickets every day. 
-  user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey")
+  user        user      @relation(fields: [userId], references: [userId], map: "Ticket_userId_fkey", onDelete: Cascade)
+}
+
+enum AgeRange {
+  Age_10
+  Age10_15
+  Age15_20
+  Age20_25
+  Age25_30
+  Age30_35
+  Age35_
 }
 
 model user {
-  snsId     String?
-  provider  String?
-  userId    String   @id
-  firstName String  
-  lastName  String  
-  gender    Int      @default(0)
-  createdAt DateTime @default(now())
-  likes     likes[]
-  post      post[]
-  tickets   ticket[]
-  followers follow[] @relation(name:"follower_target")
-  following follow[] @relation(name:"follower_origin")
-  shelves   shelf[]
+  snsId       String?
+  provider    String?
+  userId      String   @id
+  firstName   String  
+  lastName    String  
+  gender      Int      @default(0)
+  ageRange    AgeRange?
+  job         String?
+  createdAt   DateTime @default(now())
+  likes       likes[]
+  post        post[]
+  tickets     ticket[]
+  followers   follow[] @relation(name:"follower_target")
+  following   follow[] @relation(name:"follower_origin")
+  blocked     blockedUser[] @relation(name:"blockedUser_origin")
+  blockedBy   blockedUser[] @relation(name:"blockedUser_target")
+  reportedPost  reportedPosts[]
+  shelves     shelf[]
   @@unique([snsId, provider], map: "User_snsId_provider_key")
+}
+
+model blockedUser {
+  originId    String 
+  targetId    String 
+  since       DateTime  @default(now())
+  origin_user user      @relation(fields:[originId], references: [userId], name:"blockedUser_origin", onDelete: Cascade)
+  target_user user      @relation(fields:[targetId], references: [userId], name:"blockedUser_target", onDelete: Cascade)
+
+  @@unique([originId, targetId])
+}
+
+model reportedPosts {
+  reportId    Int       @id @default(autoincrement())
+  postId      Int
+  userId      String
+  reportedAt  DateTime  @default(now())
+  post        post      @relation(fields:[postId], references: [id], onDelete: Cascade)
+  user        user      @relation(fields:[userId], references: [userId], onDelete: Cascade)
 }
 
 model shelf {
@@ -67,7 +101,7 @@ model shelf {
   name      String
   userId    String
   createdAt DateTime  @default(now())
-  user      user      @relation(fields:[userId], references: [userId])
+  user      user      @relation(fields:[userId], references: [userId], onDelete: Cascade)
   posts     post[]
   @@unique([name, userId], name:"name_userId")
 }
@@ -76,8 +110,8 @@ model follow{
   originId    String 
   targetId    String 
   since       DateTime  @default(now())
-  origin_user user      @relation(fields:[originId], references: [userId], name:"follower_origin")
-  target_user user      @relation(fields:[targetId], references: [userId],  name:"follower_target")
+  origin_user user      @relation(fields:[originId], references: [userId], name:"follower_origin", onDelete: Cascade)
+  target_user user      @relation(fields:[targetId], references: [userId],  name:"follower_target", onDelete: Cascade)
 
   @@unique([originId, targetId])
 

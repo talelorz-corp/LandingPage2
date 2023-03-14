@@ -1,1 +1,0 @@
-import { db } from "../../prisma/datasource"
