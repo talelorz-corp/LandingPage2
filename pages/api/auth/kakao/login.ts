@@ -30,6 +30,7 @@ export default async function handler(
     }     
     
     // try login
+    console.log(req.body)
     const providers: {[key: string]: E_LOGIN_PROVIDERS} = {'KAKAO': E_LOGIN_PROVIDERS.KAKAO, 'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE}
     const {snsId, provider}: {snsId: string, provider: string} = req.body
     const loginResult = await DoSNSLogin(snsId, providers[provider])

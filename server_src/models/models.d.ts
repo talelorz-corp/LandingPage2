@@ -13,6 +13,10 @@ declare type PostPaginateDto = {
 }
 
 //should we do request type checks?
+declare type GenerateTaleRequestData = {
+    input: string,
+}
+
 declare type CreatePostRequestData = {
     content: string,
     shelf?: string,

@@ -7,17 +7,17 @@ describe("post", ()=>{
         {"userId": "thinkAboutTzu", "firstName": "쯔위", "lastName": "조"}
     ]
 
-    //beforeAll(async()=>{
-    //    //batch insert
-    //    for(let i = 0; i < 30; i++){
-    //        for(let j = 0; j < i % 7; j++){
-    //            let date = new  Date()
-    //            date.setMinutes(j % 59)
-    //            date.setSeconds(i)
-    //            await postRepository.createPost({authorId: `sample_user_${i}`, content: `content_${i}_${j}`, createdAt: date})    
-    //        }
-    //    }
-    //})
+    beforeAll(async()=>{
+        //batch insert
+        for(let i = 0; i < 30; i++){
+            for(let j = 0; j < i % 7; j++){
+                let date = new  Date()
+                date.setMinutes(j % 59)
+                date.setSeconds(i)
+                await postRepository.createPost({userId: `sample_user_${i}`, content: `content_${i}_${j}`, hashtags: []})    
+            }
+        }
+    })
 
     test("generate feed", async()=>{
         const {top, posts, nextFollowingCursor, nextGlobalCursor} = await GetPostsGenerateFeed("sample_user_0", null, null)
