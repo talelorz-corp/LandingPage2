@@ -3,7 +3,6 @@ import Router from 'next/router'
 export default function SignUp() {
 
     useEffect(()=>{
-        console.log("reload login page")
         fetch('http://localhost:3000/api/auth/checkLogin',
         {
             method : "GET"

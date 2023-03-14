@@ -31,7 +31,12 @@ export default async function handler(
         }     
         
         // try login
-        const providers: {[key: string]: E_LOGIN_PROVIDERS} = {'KAKAO': E_LOGIN_PROVIDERS.KAKAO, 'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE}
+        const providers: {[key: string]: E_LOGIN_PROVIDERS} = 
+        {
+            'KAKAO': E_LOGIN_PROVIDERS.KAKAO,
+            'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE, 
+            'NAVER': E_LOGIN_PROVIDERS.NAVER
+        }
         const {snsId, provider}: {snsId: string, provider: string} = req.body
         const loginResult = await DoSNSLogin(snsId, providers[provider])
 
@@ -45,6 +50,7 @@ export default async function handler(
             res.json({"success": true, "user": loginResult.user , "redirect_url": "/"})
         }
     } catch(e: any) {
+        console.log(e.message)
         res.status(500).json({"success": false, "message": e.message})
     }
 

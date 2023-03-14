@@ -31,7 +31,11 @@ export default async function handler(
 
 
     //perform sign up
-    const providers: {[key: string]: E_LOGIN_PROVIDERS} = {'KAKAO': E_LOGIN_PROVIDERS.KAKAO, 'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE}
+    const providers: {[key: string]: E_LOGIN_PROVIDERS} = {
+        'KAKAO': E_LOGIN_PROVIDERS.KAKAO, 
+        'GOOGLE': E_LOGIN_PROVIDERS.GOOGLE,
+        'NAVER': E_LOGIN_PROVIDERS.NAVER
+    }
     const form : {snsId: string, provider: string, firstName: string, lastName: string, userId: string} = req.body
     const signupResult = await DoSNSSignUp(form.firstName, form.lastName, form.userId, form.snsId, providers[form.provider])
     
